@@ -28,6 +28,7 @@ import {
   getStatusColor,
   statusChipStyles,
 } from "../../../../../utils/status_utils";
+import useAppealsStore from "../store";
 
 interface IAppealDetailsDialog {
   open: boolean;
@@ -40,35 +41,21 @@ export const AppealDetailsDialog: React.FC<IAppealDetailsDialog> = ({
   open,
   onClose,
   appeal,
-  currentUserId,
 }) => {
+  const { setConfirmationAction, setConfirmationDialogOpen } = useAppealsStore();
   const updateAppealStatusMutation = useUpdateAppealStatus();
 
   const { data: report, isLoading: isReportLoading } =
     useReportByTrackingNumber(appeal?.violationTrackingNumber || "");
 
   const handleApprove = () => {
-    if (appeal && currentUserId) {
-      updateAppealStatusMutation.mutate({
-        documentId: appeal.documentId,
-        status: "Approved",
-        currentUserId,
-        violationTrackingNumber: appeal.violationTrackingNumber,
-      });
-      onClose();
-    }
+    setConfirmationAction("Approve");
+    setConfirmationDialogOpen(true);
   };
 
   const handleReject = () => {
-    if (appeal && currentUserId) {
-      updateAppealStatusMutation.mutate({
-        documentId: appeal.documentId,
-        status: "Rejected",
-        currentUserId,
-        violationTrackingNumber: appeal.violationTrackingNumber,
-      });
-      onClose();
-    }
+    setConfirmationAction("Reject");
+    setConfirmationDialogOpen(true);
   };
 
   const getOffenseText = (repetition: number): string => {
@@ -183,6 +170,14 @@ export const AppealDetailsDialog: React.FC<IAppealDetailsDialog> = ({
                         value={appeal.reasonForAppeal}
                         multiline
                       />
+                      {appeal.status !== "Pending" && appeal.statusReason && (
+                        <ModernDetailItem
+                          icon={<DescriptionIcon />}
+                          label="Reason for Status"
+                          value={appeal.statusReason}
+                          multiline
+                        />
+                      )}
 
                       {appeal.supportingDocuments.length > 0 && (
                         <Box>
@@ -466,11 +461,11 @@ export const AppealDetailsDialog: React.FC<IAppealDetailsDialog> = ({
         >
           Close
         </Button>
-        {appeal?.status !== "Approved" && appeal?.status !== "Rejected" && (
+        {appeal?.status === "Pending" && (
           <>
             <Button
               variant="contained"
-              color="error"
+              color="warning" // **FIX: Changed to "warning" for Yellow**
               onClick={handleReject}
               disabled={updateAppealStatusMutation.isPending}
               sx={{
@@ -484,7 +479,7 @@ export const AppealDetailsDialog: React.FC<IAppealDetailsDialog> = ({
             </Button>
             <Button
               variant="contained"
-              color="success"
+              color="success" // **FIX: Changed to "success" for Green**
               onClick={handleApprove}
               disabled={updateAppealStatusMutation.isPending}
               sx={{

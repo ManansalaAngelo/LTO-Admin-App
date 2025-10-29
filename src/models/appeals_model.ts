@@ -10,4 +10,5 @@ export interface AppealsModel {
   uploadedDocuments: string[];
   status: "Pending" | "Approved" | "Rejected";
   statusUpdatedById?: string;
+  statusReason?: string;
 }

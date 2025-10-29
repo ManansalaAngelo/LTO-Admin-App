@@ -8,10 +8,14 @@ interface AppealsStore {
   searchQuery: string;
   selectedAppeal: AppealsModel | undefined;
   isAppealDetailsDialogOpen: boolean;
-  
+  isConfirmationDialogOpen: boolean;
+  confirmationAction: "Approve" | "Reject" | null;
+
   setSearchQuery: (val: string) => void;
   setSelectedAppeal: (appeal: AppealsModel | undefined) => void;
   setAppealDetailsDialogOpen: (open: boolean) => void;
+  setConfirmationDialogOpen: (open: boolean) => void;
+  setConfirmationAction: (action: "Approve" | "Reject" | null) => void;
   reset: () => void;
 }
 
@@ -21,10 +25,17 @@ const useAppealsStore = create<AppealsStore>((set) => ({
   searchQuery: "",
   selectedAppeal: undefined,
   isAppealDetailsDialogOpen: false,
-  
+  isConfirmationDialogOpen: false,
+  confirmationAction: null,
+
   setSearchQuery: (searchQuery: string) => set({ searchQuery }),
-  setSelectedAppeal: (selectedAppeal: AppealsModel | undefined) => set({ selectedAppeal }),
-  setAppealDetailsDialogOpen: (isAppealDetailsDialogOpen: boolean) => set({ isAppealDetailsDialogOpen }),
+  setSelectedAppeal: (selectedAppeal: AppealsModel | undefined) =>
+    set({ selectedAppeal }),
+  setAppealDetailsDialogOpen: (isAppealDetailsDialogOpen: boolean) =>
+    set({ isAppealDetailsDialogOpen }),
+  setConfirmationDialogOpen: (open: boolean) =>
+    set({ isConfirmationDialogOpen: open }),
+  setConfirmationAction: (action) => set({ confirmationAction: action }),
 
   reset: () =>
     set({
@@ -32,6 +43,8 @@ const useAppealsStore = create<AppealsStore>((set) => ({
       searchQuery: "",
       selectedAppeal: undefined,
       isAppealDetailsDialogOpen: false,
+      isConfirmationDialogOpen: false,
+      confirmationAction: null,
     }),
 }));
 

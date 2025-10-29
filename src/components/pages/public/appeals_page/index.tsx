@@ -8,21 +8,26 @@ import useAppealsStore from "./store";
 import { useAppeals, useUpdateAppealStatus } from "./hooks";
 import { DataTable } from "./components/data_table";
 import { AppealDetailsDialog } from "./components/appeal_details_dialog";
+import { ConfirmationDialog } from "./components/confirmation_dialog";
 import { useAuth } from "../../../../context/auth_context";
 import type { AppealsModel } from "../../../../models/appeals_model";
 
 const AppealsPage: React.FC = () => {
   const { currentUser } = useAuth();
-  const { 
-    pageSize, 
-    searchQuery, 
-    selectedAppeal, 
+  const {
+    pageSize,
+    searchQuery,
+    selectedAppeal,
     isAppealDetailsDialogOpen,
+    isConfirmationDialogOpen,
+    confirmationAction,
     setSearchQuery,
     setSelectedAppeal,
-    setAppealDetailsDialogOpen
+    setAppealDetailsDialogOpen,
+    setConfirmationDialogOpen,
+    setConfirmationAction,
   } = useAppealsStore();
-  
+
   const {
     data,
     fetchNextPage,
@@ -58,30 +63,48 @@ const AppealsPage: React.FC = () => {
   };
 
   const handleApproveAppeal = (appeal: AppealsModel) => {
-    if (currentUser?.uid) {
-      updateAppealStatusMutation.mutate({
-        documentId: appeal.documentId,
-        status: "Approved",
-        currentUserId: currentUser.uid,
-        violationTrackingNumber: appeal.violationTrackingNumber,
-      });
-    }
+    setSelectedAppeal(appeal);
+    setConfirmationAction("Approve");
+    setConfirmationDialogOpen(true);
   };
 
   const handleRejectAppeal = (appeal: AppealsModel) => {
-    if (currentUser?.uid) {
-      updateAppealStatusMutation.mutate({
-        documentId: appeal.documentId,
-        status: "Rejected",
-        currentUserId: currentUser.uid,
-        violationTrackingNumber: appeal.violationTrackingNumber,
-      });
-    }
+    setSelectedAppeal(appeal);
+    setConfirmationAction("Reject");
+    setConfirmationDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setAppealDetailsDialogOpen(false);
     setSelectedAppeal(undefined);
+  };
+
+  const handleCloseConfirmationDialog = () => {
+    setConfirmationDialogOpen(false);
+    setConfirmationAction(null);
+  };
+
+  const handleConfirmAction = (reason: string) => {
+    if (selectedAppeal && currentUser?.uid && confirmationAction) {
+      updateAppealStatusMutation.mutate(
+        {
+          documentId: selectedAppeal.documentId,
+          status: confirmationAction === "Approve" ? "Approved" : "Rejected",
+          currentUserId: currentUser.uid,
+          violationTrackingNumber: selectedAppeal.violationTrackingNumber,
+          reason,
+        },
+        {
+          onSuccess: () => {
+            handleCloseConfirmationDialog();
+            handleCloseDialog();
+          },
+          onError: (error) => {
+            alert(`Failed to update appeal: ${error.message}`);
+          },
+        }
+      );
+    }
   };
 
   if (isLoading) {
@@ -123,7 +146,7 @@ const AppealsPage: React.FC = () => {
         </Box>
         <Box sx={{ position: "relative" }}>
           {isRefetching && <TableLoadingIndicator />}
-          <DataTable 
+          <DataTable
             data={allData}
             onOpenAppeal={handleOpenAppeal}
             onApproveAppeal={handleApproveAppeal}
@@ -137,13 +160,23 @@ const AppealsPage: React.FC = () => {
           onLoadMore={handleLoadMore}
         />
       </Box>
-      
+
       <AppealDetailsDialog
         open={isAppealDetailsDialogOpen}
         onClose={handleCloseDialog}
         appeal={selectedAppeal || null}
         currentUserId={currentUser?.uid}
       />
+
+      {confirmationAction && (
+        <ConfirmationDialog
+          open={isConfirmationDialogOpen}
+          onClose={handleCloseConfirmationDialog}
+          onConfirm={handleConfirmAction}
+          title={`${confirmationAction} Appeal`}
+          actionType={confirmationAction}
+        />
+      )}
     </Box>
   );
 };

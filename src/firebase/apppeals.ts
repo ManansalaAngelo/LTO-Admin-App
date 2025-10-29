@@ -1,4 +1,3 @@
-// src/firebase/appeals.ts
 import type { AppealsModel } from "../models/appeals_model";
 import {
   collection,
@@ -44,15 +43,14 @@ export const getAppeals = async ({
     collection(db, FirebaseCollections.appeals);
 
   if (searchQuery) {
-    // Case-sensitive search for violation tracking number
     q = query(
       collection(db, FirebaseCollections.appeals),
-      where("violationTrackingNumber", "==", searchQuery),
+      where("violationTrackingNumber", "==", searchQuery.toUpperCase()),
       limit(pageSize)
     );
     countQ = query(
       collection(db, FirebaseCollections.appeals),
-      where("violationTrackingNumber", "==", searchQuery)
+      where("violationTrackingNumber", "==", searchQuery.toUpperCase())
     );
   } else {
     q = query(
@@ -65,14 +63,12 @@ export const getAppeals = async ({
 
   try {
     if (searchQuery) {
-      // Run both the paginated search query and the count query for that search
       const [querySnapshot, countSnapshot] = await Promise.all([
         getDocs(q),
         getCountFromServer(countQ),
       ]);
       totalCount = countSnapshot.data().count;
 
-      // Sort the results in memory since we can't use orderBy with where clause
       const sortedAppeals = querySnapshot.docs
         .map(
           (doc) =>
@@ -83,14 +79,12 @@ export const getAppeals = async ({
         .sort((a, b) => {
           let aTime, bTime;
 
-          // Safely get the timestamp value for a
           if (a.createdAt instanceof Timestamp) {
             aTime = a.createdAt.toDate().getTime();
           } else {
             aTime = new Date(a.createdAt as unknown as string).getTime() || 0;
           }
 
-          // Safely get the timestamp value for b
           if (b.createdAt instanceof Timestamp) {
             bTime = b.createdAt.toDate().getTime();
           } else {
@@ -100,7 +94,6 @@ export const getAppeals = async ({
           return bTime - aTime;
         });
 
-      // Get violator full names from users collection
       const appealsWithViolatorNames = await Promise.all(
         sortedAppeals.map(async (appeal) => {
           try {
@@ -138,7 +131,6 @@ export const getAppeals = async ({
 
       appeals = appealsWithViolatorNames;
 
-      // Find the last visible document based on the in-memory sorted array
       if (querySnapshot.docs.length > 0) {
         lastVisible =
           querySnapshot.docs.find(
@@ -146,7 +138,6 @@ export const getAppeals = async ({
           ) || null;
       }
     } else {
-      // For the default, non-search query, we can rely on standard pagination
       const [querySnapshot, countSnapshot] = await Promise.all([
         getDocs(q),
         getCountFromServer(collection(db, FirebaseCollections.appeals)),
@@ -154,7 +145,6 @@ export const getAppeals = async ({
 
       totalCount = countSnapshot.data().count;
 
-      // Get appeals data with violator full names
       const appealsWithViolatorNames = await Promise.all(
         querySnapshot.docs.map(async (docSnapshot) => {
           const data = docSnapshot.data();
@@ -208,7 +198,8 @@ export const updateAppealStatus = async (
   documentId: string,
   status: "Approved" | "Rejected",
   currentUserId: string,
-  violationTrackingNumber: string
+  violationTrackingNumber: string,
+  reason?: string
 ): Promise<void> => {
   if (!documentId) {
     throw new Error("Document ID is required to update an appeal.");
@@ -219,18 +210,21 @@ export const updateAppealStatus = async (
   }
 
   if (!violationTrackingNumber) {
-    throw new Error("Violation tracking number is required to update an appeal.");
+    throw new Error(
+      "Violation tracking number is required to update an appeal."
+    );
   }
 
   try {
-    // Update the appeal status
     const appealRef = doc(db, FirebaseCollections.appeals, documentId);
+    
+    // **THE FIX IS HERE:** This object now includes the 'statusReason' field.
     await updateDoc(appealRef, {
       status: status,
       statusUpdatedById: currentUserId,
+      statusReason: reason || "", // Save the reason, or an empty string if none is provided.
     });
 
-    // If approved, update the report status to "Overturned"
     if (status === "Approved") {
       const reportsQuery = query(
         collection(db, FirebaseCollections.reports),
@@ -239,24 +233,28 @@ export const updateAppealStatus = async (
       );
 
       const reportsSnapshot = await getDocs(reportsQuery);
-      
+
       if (!reportsSnapshot.empty) {
         const reportDoc = reportsSnapshot.docs[0];
         const reportRef = doc(db, FirebaseCollections.reports, reportDoc.id);
-        
+
         await updateDoc(reportRef, {
-          status: "Overturned"
+          status: "Overturned",
         });
-        
-        console.log(`Report with tracking number ${violationTrackingNumber} status updated to Overturned.`);
+
+        console.log(
+          `Report with tracking number ${violationTrackingNumber} status updated to Overturned.`
+        );
       } else {
-        console.warn(`No report found with tracking number: ${violationTrackingNumber}`);
+        console.warn(
+          `No report found with tracking number: ${violationTrackingNumber}`
+        );
       }
     }
 
     console.log(`Appeal with ID ${documentId} status updated to ${status}.`);
   } catch (e) {
     console.error(`Error updating appeal status with ID ${documentId}: `, e);
-    throw e; // Re-throw the error to be handled by the caller
+    throw e;
   }
 };

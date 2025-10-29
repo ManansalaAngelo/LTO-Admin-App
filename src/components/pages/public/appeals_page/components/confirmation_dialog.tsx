@@ -76,7 +76,7 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
           color={actionType === "Approve" ? "success" : "error"}
           disabled={!reason.trim()}
         >
-          Confirm {actionType}
+          Confirm
         </Button>
       </DialogActions>
     </Dialog>

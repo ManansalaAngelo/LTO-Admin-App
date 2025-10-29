@@ -1,5 +1,3 @@
-// src/hooks/useAppeals.ts
-
 import {
   useInfiniteQuery,
   useMutation,
@@ -26,7 +24,7 @@ export const useAppeals = ({
     lastDoc: DocumentData | null;
     totalCount: number;
   }>({
-    queryKey: ["appeals"],
+    queryKey: ["appeals", searchQuery], // Add searchQuery to queryKey to refetch on change
     queryFn: ({ pageParam }) =>
       getAppeals({
         pageSize,
@@ -42,21 +40,30 @@ export const useUpdateAppealStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ 
-      documentId, 
-      status, 
+    // THIS IS THE FIX: The mutation now accepts and uses the 'reason' field.
+    mutationFn: ({
+      documentId,
+      status,
       currentUserId,
-      violationTrackingNumber
-    }: { 
-      documentId: string; 
-      status: "Approved" | "Rejected"; 
-      currentUserId: string; 
+      violationTrackingNumber,
+      reason, // <-- Add reason here
+    }: {
+      documentId: string;
+      status: "Approved" | "Rejected";
+      currentUserId: string;
       violationTrackingNumber: string;
-    }) => updateAppealStatus(documentId, status, currentUserId, violationTrackingNumber),
+      reason?: string; // <-- Add reason to the type definition
+    }) =>
+      updateAppealStatus(
+        documentId,
+        status,
+        currentUserId,
+        violationTrackingNumber,
+        reason // <-- Pass the reason to the database function
+      ),
     onSuccess: () => {
-      // Invalidate the 'appeals' query to force a refetch and update the UI
+      // Invalidate queries to force a refetch and update the UI
       queryClient.invalidateQueries({ queryKey: ["appeals"] });
-      // Also invalidate reports queries since we might update report status
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["report"] });
     },
@@ -74,4 +81,3 @@ export const useReportByTrackingNumber = (violationTrackingNumber: string) => {
     enabled: !!violationTrackingNumber,
   });
 };
-

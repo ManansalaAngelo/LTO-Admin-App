@@ -1,7 +1,8 @@
+import { Timestamp } from "firebase/firestore";
 import type { ViolationModel } from "./violation_model";
 
 export interface ReportModel {
-  documentId: string;
+  id?: string;
   fullname: string;
   address: string;
   phoneNumber: string;
@@ -10,15 +11,13 @@ export interface ReportModel {
   plateNumber: string;
   platePhoto: string;
   evidencePhoto: string;
-  trackingNumber?: string | null;
-  createdById?: string | null;
+  trackingNumber?: string;
+  createdById?: string;
   violations: ViolationModel[];
-  createdAt?: Date | null;
-  draftId?: string | null;
+  createdAt: Timestamp;
+  dueDate?: Timestamp; // ✅ ADD THIS LINE
+  draftId?: string;
+  paymentReferenceId?: string;
   status: "Overturned" | "Submitted" | "Cancelled" | "Paid";
-  paymentStatus:
-    | "Pending"
-    | "Completed"
-    | "Refunded"
-    | "Cancelled";
+  paymentStatus: "Pending" | "Completed" | "Refunded" | "Cancelled";
 }
