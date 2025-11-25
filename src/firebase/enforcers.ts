@@ -255,3 +255,41 @@ export const updateEnforcer = async (params: UpdateEnforcerParams): Promise<{ is
     };
   }
 };
+
+/**
+ * Get enforcer information by document ID
+ * @param enforcerId - The document ID of the enforcer
+ * @returns Promise<{ id: string, fullName: string } | null>
+ */
+export const getEnforcerById = async (enforcerId: string): Promise<{ id: string, fullName: string } | null> => {
+  if (!enforcerId) {
+    return null;
+  }
+
+  try {
+    const userRef = doc(db, FirebaseCollections.users, enforcerId);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      return null;
+    }
+
+    const userData = userDoc.data();
+    const roles = userData.roles || [];
+
+    // Check if user is an enforcer
+    if (!roles.includes(UserRoles.Enforcer)) {
+      return null;
+    }
+
+    const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+    
+    return {
+      id: enforcerId,
+      fullName: fullName || 'Unknown Enforcer'
+    };
+  } catch (error) {
+    console.error(`Error getting enforcer by ID ${enforcerId}:`, error);
+    return null;
+  }
+};

@@ -18,12 +18,35 @@ import {
 import { Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { FirebaseCollections } from "../enums/collections";
+import { getEnforcerById } from "./enforcers";
 
 interface GetReportsParams {
   pageSize: number;
   lastDoc?: DocumentData | null;
   searchQuery?: string;
 }
+
+/**
+ * Enriches reports with enforcer information
+ * @param reports - Array of reports to enrich
+ * @returns Promise<ReportModel[]> - Reports with enforcer names
+ */
+export const enrichReportsWithEnforcerData = async (reports: ReportModel[]): Promise<ReportModel[]> => {
+  const enrichedReports = await Promise.all(
+    reports.map(async (report) => {
+      if (report.enforcerId && !report.enforcerName) {
+        const enforcerData = await getEnforcerById(report.enforcerId);
+        return {
+          ...report,
+          enforcerName: enforcerData?.fullName || 'Unknown Enforcer'
+        };
+      }
+      return report;
+    })
+  );
+  
+  return enrichedReports;
+};
 
 // Helper function to generate the end-of-range string for a "starts with" query
 
@@ -166,7 +189,10 @@ export const getReports = async ({
     console.error("Error getting documents: ", e);
   }
 
-  return { reports, lastDoc: lastVisible, totalCount };
+  // Enrich reports with enforcer data
+  const enrichedReports = await enrichReportsWithEnforcerData(reports);
+
+  return { reports: enrichedReports, lastDoc: lastVisible, totalCount };
 };
 
 export const getReportByTrackingNumber = async (
@@ -193,13 +219,17 @@ export const getReportByTrackingNumber = async (
     const doc = querySnapshot.docs[0];
     const data = doc.data();
 
-    return {
+    const report = {
       documentId: doc.id,
       ...data,
       createdAt: data.createdAt instanceof Timestamp 
         ? data.createdAt.toDate() 
         : new Date(data.createdAt as unknown as string),
-    } as ReportModel;
+    } as unknown as ReportModel;
+
+    // Enrich with enforcer data
+    const [enrichedReport] = await enrichReportsWithEnforcerData([report]);
+    return enrichedReport;
   } catch (e) {
     console.error("Error getting report by tracking number: ", e);
     throw e;
@@ -219,4 +249,38 @@ export const deleteReport = async (documentId: string): Promise<void> => {
     console.error(`Error deleting document with ID ${documentId}: `, e);
     throw e; // Re-throw the error to be handled by the caller
   }
+};
+
+/**
+ * Creates a new violation report with enforcer information
+ * This is a placeholder function - you'll need to implement the actual report creation logic
+ * @param reportData - The report data to create
+ * @param enforcerId - The ID of the enforcer creating the report
+ * @returns Promise<string> - The created report ID
+ */
+export const createViolationReport = async (
+  reportData: Omit<ReportModel, 'id' | 'documentId' | 'enforcerId' | 'enforcerName' | 'trackingNumber' | 'createdAt'>,
+  enforcerId: string
+): Promise<string> => {
+  // Get enforcer information
+  const enforcer = await getEnforcerById(enforcerId);
+  
+  // Generate tracking number (you may want to implement your own logic)
+  const trackingNumber = `TN${Date.now()}`;
+  
+  // Create the report with enforcer information
+  const completeReportData = {
+    ...reportData,
+    enforcerId,
+    enforcerName: enforcer?.fullName,
+    trackingNumber,
+    createdAt: new Date(),
+  };
+  
+  // TODO: Implement the actual Firestore document creation
+  // const docRef = await addDoc(collection(db, FirebaseCollections.reports), completeReportData);
+  // return docRef.id;
+  
+  console.log('Report data with enforcer:', completeReportData);
+  throw new Error('createViolationReport not yet implemented - add addDoc logic here');
 };

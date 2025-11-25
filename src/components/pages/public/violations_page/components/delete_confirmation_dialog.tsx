@@ -23,11 +23,13 @@ export const DeleteConfimationDialog: React.FC = () => {
     setSelectedReport(undefined);
   };
   const handleDelete = () => {
-    deleteReport.mutate(selectedReport!.documentId, {
-      onSuccess: () => {
-        handleClose();
-      },
-    });
+    if (selectedReport?.documentId) {
+      deleteReport.mutate(selectedReport.documentId, {
+        onSuccess: () => {
+          handleClose();
+        },
+      });
+    }
   };
   return (
     <>

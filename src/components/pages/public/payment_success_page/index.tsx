@@ -229,33 +229,6 @@ const PaymentSuccessPage: React.FC = () => {
               successfully. You can now go back to the app!
             </Typography>
 
-            {/* Debug Information */}
-            <Box
-              sx={{
-                mb: 4,
-                p: 2,
-                borderRadius: 2,
-                backgroundColor: theme.palette.grey[100],
-                border: `1px solid ${theme.palette.grey[300]}`,
-              }}
-            >
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Debug Information:
-              </Typography>
-              <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                Full URL: {window.location.href}
-              </Typography>
-              <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                Search Params: {searchParams.toString()}
-              </Typography>
-              <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                Source ID: {sourceId || "null"}
-              </Typography>
-              <Typography variant="body2" sx={{ fontFamily: "monospace" }}>
-                Payment ID: {paymentId || "null"}
-              </Typography>
-            </Box>
-
             {/* Transaction Details */}
             {(sourceId || paymentId) && (
               <>

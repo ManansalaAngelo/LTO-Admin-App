@@ -92,6 +92,7 @@ export const DataTable: React.FC<IDataTable> = ({ allReports }) => {
             <TableCell width="15%">Full Name</TableCell>
             <TableCell>Plate Number</TableCell>
             <TableCell>Violations</TableCell>
+            <TableCell>Enforcer</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Created At</TableCell>
             <TableCell sx={TableStyleProps.tableHeadRight}>Actions</TableCell>
@@ -100,20 +101,22 @@ export const DataTable: React.FC<IDataTable> = ({ allReports }) => {
         <TableBody>
           {allReports.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} align="center">
+              <TableCell colSpan={9} align="center">
                 No reports found.
               </TableCell>
             </TableRow>
           ) : (
             allReports.map((report, index) => {
-              const isOpen = openMenuId === report.documentId;
+              const reportId = report.documentId || `report-${index}`;
+              const isOpen = openMenuId === reportId;
               return (
-                <TableRow key={report.documentId}>
+                <TableRow key={reportId}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{report.trackingNumber || "N/A"}</TableCell>
                   <TableCell>{report.fullname}</TableCell>
                   <TableCell>{report.plateNumber}</TableCell>
                   <TableCell>{report.violations.map(v => v.violationName).join(", ")}</TableCell>
+                  <TableCell>{report.enforcerName || "N/A"}</TableCell>
                   <TableCell>
                     <Chip 
                       label={getDisplayStatus(report.status)}
@@ -126,17 +129,17 @@ export const DataTable: React.FC<IDataTable> = ({ allReports }) => {
                   <TableCell>
                     <IconButton
                       ref={(el) => {
-                        anchorRefs.current[report.documentId] = el;
+                        anchorRefs.current[reportId] = el;
                       }}
-                      id={`composition-button-${report.documentId}`}
+                      id={`composition-button-${reportId}`}
                       aria-controls={
                         isOpen
-                          ? `composition-menu-${report.documentId}`
+                          ? `composition-menu-${reportId}`
                           : undefined
                       }
                       aria-expanded={isOpen ? "true" : undefined}
                       aria-haspopup="true"
-                      onClick={() => handleToggle(report.documentId)}
+                      onClick={() => handleToggle(reportId)}
                     >
                       <MoreVert
                         sx={{
@@ -146,7 +149,7 @@ export const DataTable: React.FC<IDataTable> = ({ allReports }) => {
                     </IconButton>
                     <Popper
                       open={isOpen}
-                      anchorEl={anchorRefs.current[report.documentId ?? index]}
+                      anchorEl={anchorRefs.current[reportId]}
                       role={undefined}
                       placement="bottom-start"
                       transition
@@ -167,8 +170,8 @@ export const DataTable: React.FC<IDataTable> = ({ allReports }) => {
                             <ClickAwayListener onClickAway={handleClose}>
                               <MenuList
                                 autoFocusItem={isOpen}
-                                id={`composition-menu-${report.documentId}`}
-                                aria-labelledby={`composition-button-${report.documentId}`}
+                                id={`composition-menu-${reportId}`}
+                                aria-labelledby={`composition-button-${reportId}`}
                                 onKeyDown={handleListKeyDown}
                                 sx={{
                                   color: "secondary.main",

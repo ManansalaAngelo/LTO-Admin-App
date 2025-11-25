@@ -22,6 +22,7 @@ import { db } from "../firebase";
 import { FirebaseCollections } from "../enums/collections";
 import type { ReportModel } from "../models/report_model";
 import type { PaymentModel } from "../models/payment_model";
+import { enrichReportsWithEnforcerData } from "./reports";
 
 // Dashboard data interface
 export interface DashboardData {
@@ -131,8 +132,10 @@ const convertToReportModel = (doc: DocumentData): ReportModel => {
     evidencePhoto: data.evidencePhoto || "",
     trackingNumber: data.trackingNumber || null,
     createdById: data.createdById || null,
+    enforcerId: data.enforcerId || null,
+    enforcerName: data.enforcerName || null,
     violations: data.violations || [],
-    createdAt: createdAt,
+    createdAt: createdAt || new Date(),
     draftId: data.draftId || null,
     status: data.status || "Submitted",
     paymentStatus: data.paymentStatus || "Pending",
@@ -209,15 +212,24 @@ const getTodayRange = () => {
   };
 };
 
-
+// Helper function to get Date from Timestamp or Date
+const getDateValue = (dateValue: Timestamp | Date | null | undefined): Date | null => {
+  if (!dateValue) return null;
+  if (dateValue instanceof Date) return dateValue;
+  if (typeof (dateValue as any).toDate === 'function') {
+    return (dateValue as any).toDate();
+  }
+  return null;
+};
 
 // Helper function to group violations by month
 const groupByMonth = (reports: ReportModel[]): Record<string, number> => {
   return reports.reduce((acc, report) => {
-    if (!report.createdAt) return acc;
+    const createdDate = getDateValue(report.createdAt);
+    if (!createdDate) return acc;
 
-    const monthKey = `${report.createdAt.getFullYear()}-${String(
-      report.createdAt.getMonth() + 1
+    const monthKey = `${createdDate.getFullYear()}-${String(
+      createdDate.getMonth() + 1
     ).padStart(2, "0")}`;
     acc[monthKey] = (acc[monthKey] || 0) + 1;
     return acc;
@@ -273,17 +285,20 @@ export const getDashboardData = async (): Promise<DashboardData> => {
       orderBy("createdAt", "desc")
     );
     const allReportsSnapshot = await getDocs(allReportsQuery);
-    const allReports: ReportModel[] =
+    const allReportsRaw: ReportModel[] =
       allReportsSnapshot.docs.map(convertToReportModel);
+    const allReports = await enrichReportsWithEnforcerData(allReportsRaw);
 
-    // Count today's and month's violations from all reports (since createdAt is string)
-    const todayViolations = allReports.filter(report => 
-      report.createdAt && isToday(report.createdAt.toISOString())
-    ).length;
+    // Count today's and month's violations from all reports
+    const todayViolations = allReports.filter(report => {
+      const createdDate = getDateValue(report.createdAt);
+      return createdDate && isToday(createdDate.toISOString());
+    }).length;
 
-    const monthViolations = allReports.filter(report => 
-      report.createdAt && isCurrentMonth(report.createdAt.toISOString())
-    ).length;
+    const monthViolations = allReports.filter(report => {
+      const createdDate = getDateValue(report.createdAt);
+      return createdDate && isCurrentMonth(createdDate.toISOString());
+    }).length;
 
     // Query latest violations (last 10)
     const latestViolationsQuery = query(
@@ -292,8 +307,9 @@ export const getDashboardData = async (): Promise<DashboardData> => {
       limit(10)
     );
     const latestViolationsSnapshot = await getDocs(latestViolationsQuery);
-    const latestViolations: ReportModel[] =
+    const latestViolationsRaw: ReportModel[] =
       latestViolationsSnapshot.docs.map(convertToReportModel);
+    const latestViolations = await enrichReportsWithEnforcerData(latestViolationsRaw);
 
     // Query all payments
     const allPaymentsQuery = query(paymentsRef, orderBy("paidAt", "desc"));
@@ -336,7 +352,8 @@ export const getDashboardData = async (): Promise<DashboardData> => {
         orderBy("createdAt", "desc")
       );
       const reportsWithAppealsSnapshot = await getDocs(reportsWithAppealsQuery);
-      reportsWithAppeals = reportsWithAppealsSnapshot.docs.map(convertToReportModel);
+      const reportsWithAppealsRaw = reportsWithAppealsSnapshot.docs.map(convertToReportModel);
+      reportsWithAppeals = await enrichReportsWithEnforcerData(reportsWithAppealsRaw);
     }
 
     // Query today's payments (drivers who paid today)
@@ -442,13 +459,15 @@ export const getDashboardOverview = async (): Promise<
     const allReports = allReportsSnapshot.docs.map(convertToReportModel);
 
     // Count today's and month's violations
-    const todayViolationsCount = allReports.filter(report => 
-      report.createdAt && isToday(report.createdAt.toISOString())
-    ).length;
+    const todayViolationsCount = allReports.filter(report => {
+      const createdDate = getDateValue(report.createdAt);
+      return createdDate && isToday(createdDate.toISOString());
+    }).length;
 
-    const monthViolationsCount = allReports.filter(report => 
-      report.createdAt && isCurrentMonth(report.createdAt.toISOString())
-    ).length;
+    const monthViolationsCount = allReports.filter(report => {
+      const createdDate = getDateValue(report.createdAt);
+      return createdDate && isCurrentMonth(createdDate.toISOString());
+    }).length;
 
     // Get payment status counts
     const paidQuery = query(

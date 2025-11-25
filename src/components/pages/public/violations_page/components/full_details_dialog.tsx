@@ -138,6 +138,12 @@ export const FullDetailsDialog: React.FC = () => {
                     value={FormatDate(selectedReport?.createdAt)}
                   />
                 </Grid>
+                <Grid size={{ xs: 12, md: 3 }}>
+                  <ModernDetailItem
+                    label="Submitted by Enforcer"
+                    value={selectedReport?.enforcerName}
+                  />
+                </Grid>
 
                 {/* ✅ ADDED: Payment Due Date Field */}
                 <Grid size={{ xs: 12, md: 3 }}>
@@ -246,6 +252,24 @@ export const FullDetailsDialog: React.FC = () => {
                     value={selectedReport?.address}
                   />
                 </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <ModernDetailItem
+                    label="Age"
+                    value={selectedReport?.age !== undefined && selectedReport?.age !== null ? selectedReport.age.toString() : undefined}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <ModernDetailItem
+                    label="Birthdate"
+                    value={selectedReport?.birthdate ? FormatDate(selectedReport?.birthdate as any) : undefined}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <ModernDetailItem
+                    label="Place of Violation"
+                    value={selectedReport?.placeOfViolation}
+                  />
+                </Grid>
               </Grid>
             </CardContent>
           </Card>
@@ -294,6 +318,48 @@ export const FullDetailsDialog: React.FC = () => {
                     value={selectedReport?.plateNumber}
                     imageUrl={selectedReport?.platePhoto}
                   />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <ModernDetailItem
+                    label="Type of Vehicle"
+                    value={selectedReport?.vehicleType}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      fontWeight={600}
+                      sx={{
+                        color: "text.secondary",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                        fontSize: "0.7rem",
+                        mb: 1,
+                        display: "block",
+                      }}
+                    >
+                      License/Vehicle Confiscated
+                    </Typography>
+                    <Chip
+                      label={
+                        selectedReport?.confiscated === undefined || selectedReport?.confiscated === null
+                          ? "N/A"
+                          : typeof selectedReport?.confiscated === 'boolean'
+                          ? (selectedReport?.confiscated ? "Yes" : "No")
+                          : selectedReport?.confiscated
+                      }
+                      color={
+                        (typeof selectedReport?.confiscated === 'boolean' && selectedReport?.confiscated) ||
+                        selectedReport?.confiscated === "Yes"
+                          ? "error"
+                          : selectedReport?.confiscated === "No" || selectedReport?.confiscated === false
+                          ? "success"
+                          : "default"
+                      }
+                      sx={statusChipStyles}
+                    />
+                  </Box>
                 </Grid>
               </Grid>
             </CardContent>

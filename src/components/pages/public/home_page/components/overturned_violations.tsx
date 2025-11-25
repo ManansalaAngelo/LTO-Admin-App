@@ -66,7 +66,7 @@ const ReportsWithAppeals: React.FC = () => {
                   <TableCell>{violation.fullname}</TableCell>
                   <TableCell>
                     {violation.createdAt
-                      ? format(new Date(violation.createdAt), "MMM dd, yyyy")
+                      ? format(violation.createdAt instanceof Date ? violation.createdAt : violation.createdAt.toDate(), "MMM dd, yyyy")
                       : "N/A"}
                   </TableCell>
                   <TableCell>
