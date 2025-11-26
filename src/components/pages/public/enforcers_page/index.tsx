@@ -17,6 +17,7 @@ import { Pagination } from "../../../shared/pagination";
 import { PageLoadingIndicator } from "../../../shared/loading_indicator/page_loading";
 import { DataTable } from "./components/data_table";
 import { EnforcerDetailsDialog } from "./components/enforcer_details_dialog";
+import { EnforcerReportsDialog } from "./components/enforcer_reports_dialog";
 import { mainColor } from "../../../../themes/colors";
 import { AddModal } from "./components/add_modal";
 import { DeleteConfimationDialog } from "./components/delete_confirmation_dialog";
@@ -125,6 +126,7 @@ const EnforcerPage: React.FC = () => {
         />
       </Box>
       <EnforcerDetailsDialog />
+      <EnforcerReportsDialog />
       <DeleteConfimationDialog />
       <AddModal />
     </Box>

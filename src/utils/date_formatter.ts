@@ -20,3 +20,30 @@ export const FormatDate = (date?: Timestamp | Date | undefined | null): string =
   // Return a placeholder if the date is null, undefined, or invalid
   return '--';
 };
+
+// ✅ Format date without time (for birthdate display)
+export const FormatDateOnly = (date?: Timestamp | Date | string | undefined | null): string => {
+  if (date) {
+    try {
+      let jsDate: Date;
+      
+      // Handle different date types
+      if (date instanceof Timestamp) {
+        jsDate = date.toDate();
+      } else if (typeof date === 'string') {
+        jsDate = new Date(date);
+      } else {
+        jsDate = date;
+      }
+      
+      // Check if the resulting date is valid before formatting
+      if (!isNaN(jsDate.getTime())) {
+        return format(jsDate, 'MMMM dd, yyyy');
+      }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "-- Invalid Date --";
+    }
+  }
+  return '--';
+};

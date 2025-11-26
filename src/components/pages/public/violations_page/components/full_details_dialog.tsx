@@ -16,7 +16,7 @@ import {
   IconButton,
 } from "@mui/material";
 import useViolationsStore from "../store";
-import { FormatDate } from "../../../../../utils/date_formatter";
+import { FormatDate, FormatDateOnly } from "../../../../../utils/date_formatter";
 import {
   getStatusColor,
   getDisplayStatus,
@@ -261,7 +261,7 @@ export const FullDetailsDialog: React.FC = () => {
                 <Grid size={{ xs: 12, md: 4 }}>
                   <ModernDetailItem
                     label="Birthdate"
-                    value={selectedReport?.birthdate ? FormatDate(selectedReport?.birthdate as any) : undefined}
+                    value={selectedReport?.birthdate ? FormatDateOnly(selectedReport?.birthdate) : undefined}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>

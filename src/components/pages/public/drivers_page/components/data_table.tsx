@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import type React from "react";
 import { TableStyleProps } from "../../../../shared/style_props/table";
-import { MoreVert, Person } from "@mui/icons-material";
+import { MoreVert, Person, Gavel } from "@mui/icons-material";
 import { useRef } from "react";
 import { mainColor } from "../../../../../themes/colors";
 
@@ -30,7 +30,7 @@ interface IDataTable {
 export const DataTable: React.FC<IDataTable> = ({ drivers }) => {
   const anchorRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
-  const { openMenuId, setOpenMenuId, setSelectedDriver, setProfileModalOpen } =
+  const { openMenuId, setOpenMenuId, setSelectedDriver, setProfileModalOpen, setViolationsModalOpen } =
     useDriversStore();
 
   const handleToggle = (driverId: string) => {
@@ -59,6 +59,12 @@ export const DataTable: React.FC<IDataTable> = ({ drivers }) => {
   const handleViewDriverProfile = (driver: DriverModel) => {
     setSelectedDriver(driver);
     setProfileModalOpen(true);
+    setOpenMenuId(null); // Close the menu after selection
+  };
+
+  const handleViewViolations = (driver: DriverModel) => {
+    setSelectedDriver(driver);
+    setViolationsModalOpen(true);
     setOpenMenuId(null); // Close the menu after selection
   };
 
@@ -182,6 +188,21 @@ export const DataTable: React.FC<IDataTable> = ({ drivers }) => {
 
                                   <Typography variant="body2" sx={{ ml: 1 }}>
                                     View Profile
+                                  </Typography>
+                                </MenuItem>
+                                <MenuItem
+                                  onClick={() =>
+                                    handleViewViolations(driver)
+                                  }
+                                >
+                                  <Gavel
+                                    sx={{
+                                      color: mainColor.highlight,
+                                    }}
+                                  />
+
+                                  <Typography variant="body2" sx={{ ml: 1 }}>
+                                    View Violations
                                   </Typography>
                                 </MenuItem>
                               </MenuList>

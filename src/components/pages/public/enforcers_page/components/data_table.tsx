@@ -22,6 +22,7 @@ import {
   Delete,
   MoreVert,
   Person,
+  Receipt,
 } from "@mui/icons-material";
 import { useRef } from "react";
 import { mainColor } from "../../../../../themes/colors";
@@ -41,6 +42,7 @@ export const DataTable: React.FC<IDataTable> = ({ enforcers }) => {
     setDeleteConfirmationDialog,
     setSelectedEnforcer,
     setProfileModalOpen,
+    setReportsModalOpen,
   } = useEnforcersStore();
 
   const handleToggle = (reportId: string) => {
@@ -75,6 +77,12 @@ export const DataTable: React.FC<IDataTable> = ({ enforcers }) => {
     setSelectedEnforcer(enforcer);
     setProfileModalOpen(true);
     setOpenMenuId(null); 
+  };
+
+  const handleViewReports = (enforcer: EnforcerModel) => {
+    setSelectedEnforcer(enforcer);
+    setReportsModalOpen(true);
+    setOpenMenuId(null);
   };
 
   return (
@@ -212,6 +220,19 @@ export const DataTable: React.FC<IDataTable> = ({ enforcers }) => {
 
                                   <Typography variant="body2" sx={{ ml: 1 }}>
                                     View Profile
+                                  </Typography>
+                                </MenuItem>
+
+                                <MenuItem
+                                  onClick={() => handleViewReports(enforcer)}
+                                >
+                                  <Receipt
+                                    sx={{
+                                      color: mainColor.primary,
+                                    }}
+                                  />
+                                  <Typography variant="body2" sx={{ ml: 1 }}>
+                                    View Reports
                                   </Typography>
                                 </MenuItem>
 

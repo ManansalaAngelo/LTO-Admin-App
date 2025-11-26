@@ -18,6 +18,9 @@ interface DriversStore {
   selectedDriver: DriverModel | undefined;
   setSelectedDriver: (val: DriverModel | undefined) => void;
 
+  isViolationsModalOpen: boolean;
+  setViolationsModalOpen: (val: boolean) => void;
+
   isAddModalOpen: boolean,
   setAddModalOpen: (val: boolean) => void;
 
@@ -75,6 +78,9 @@ const useDriversStore = create<DriversStore>((set) => ({
   selectedDriver: undefined,
   setSelectedDriver: (selectedDriver: DriverModel | undefined) =>
     set({ selectedDriver }),
+
+  isViolationsModalOpen: false,
+  setViolationsModalOpen: (isViolationsModalOpen) => set({ isViolationsModalOpen }),
 
   isAddModalOpen: false,
   setAddModalOpen: (isAddModalOpen) => set({ isAddModalOpen }),
@@ -144,6 +150,7 @@ const useDriversStore = create<DriversStore>((set) => ({
       openMenuId: null,
       isProfileModalOpen: false,
       selectedDriver: undefined,
+      isViolationsModalOpen: false,
       isAddModalOpen: false,
       isEditing: false,
       error: null,

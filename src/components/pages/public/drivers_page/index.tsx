@@ -11,6 +11,7 @@ import { PageHeader } from "../../../shared/page_header";
 import { TableLoadingIndicator } from "../../../shared/loading_indicator/table_loading";
 import { DataTable } from "./components/data_table";
 import { DriverProfileDialog } from "./components/driver_profile_dialog";
+import { DriverViolationsDialog } from "./components/driver_violations_dialog";
 
 const DriverPage: React.FC = () => {
   const { pageSize, searchQuery, setSearchQuery } = useDriversStore();
@@ -90,6 +91,7 @@ const DriverPage: React.FC = () => {
         />
       </Box>
       <DriverProfileDialog />
+      <DriverViolationsDialog />
     </Box>
   );
 };

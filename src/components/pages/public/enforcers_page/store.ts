@@ -15,6 +15,9 @@ interface EnforcersStore {
   isProfileModalOpen: boolean;
   setProfileModalOpen: (val: boolean) => void;
 
+  isReportsModalOpen: boolean;
+  setReportsModalOpen: (val: boolean) => void;
+
   selectedEnforcer: EnforcerModel | undefined;
   setSelectedEnforcer: (val: EnforcerModel | undefined) => void;
 
@@ -77,6 +80,9 @@ const useEnforcersStore = create<EnforcersStore>((set) => ({
 
   isProfileModalOpen: false,
   setProfileModalOpen: (isProfileModalOpen) => set({ isProfileModalOpen }),
+
+  isReportsModalOpen: false,
+  setReportsModalOpen: (isReportsModalOpen) => set({ isReportsModalOpen }),
 
   selectedEnforcer: undefined,
   setSelectedEnforcer: (selectedEnforcer: EnforcerModel | undefined) =>
